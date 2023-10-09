@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri App</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Image Compressor</h1>
+      <div class="func_container">
+        <div class="btn_container">
+          <button id="browse_btn">Browse a file</button>
+          <button id="compress_btn">Compress</button>
+          <button id="decompress_btn">Decompress</button>
+          <button id="analyze_btn">Analyze</button>
+        </div>
+        <div class="image_container" style="background-color: white;">
+          <img id="image" v-bind:src="" alt="No image provided">
+        </div>
+      </div>
+      <p id="result"></p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,133 @@
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  /* Variables */
+  --app_width: 100vw;
+  --app_hieght: 100vh;
+  --image_width: calc(0.3 * var(--app_width));
+  --image_height: calc(0.3 * var(--app_hieght));
+  --button-transition: 300ms;
+
+  color: #0f0f0f;
+  background-color: #f6f6f6;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Containers */
+
+*,
+*::after,
+*::before {
+    box-sizing: border-box;
+}
+
+body { 
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.container {
+  margin: 0;
+  padding-top: 5vh;
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.func_container { 
+  margin: 0; 
+  padding-top: 10vh;
+
+  /* display behaviors */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.btn_container {
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.image_container {
+  margin: 0;
+  color: black;
+  width: var(--image_width);
+  height: calc(1.5 * var(--image_height)); 
+  margin-left: 80px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.image_container > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Containers */
+
+.container > h1 { 
+  margin: 0;
+}
+
+/* Buttons */
+
+.btn_container > button {
+  margin-bottom: 0.75em;
+
+  outline: none;
+  cursor: pointer;
+
+  font-size: 1em;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.6em 1.2em;
+  font-family: inherit;
+  border: 1px solid transparent;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  transition-duration: var(--button-transition);
+}
+
+button:hover {
+  transform: translateY(-0.5em);
+}
+
+button:active {
+  border-color: #396cd8;
+  background-color: #e8e8e8;
+}
+
+/* Buttons */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #f6f6f6;
+    background-color: #2f2f2f;
+  }
+
+  button {
+    color: #ffffff;
+    background-color: #0f0f0f98;
+  }
+  button:active {
+    background-color: #0f0f0f69;
+  }
+}
