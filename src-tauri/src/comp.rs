@@ -1,8 +1,8 @@
 /*
 image compression using QOI, official website: https://qoiformat.org/, you can find the specification there. 
 */
-#[allow(dead_code, unused_variables)]
 
+#[allow(dead_code, unused_variables)]
 use crate::consts::*;
 use crate::qoi_errror::QoiError;
 use crate::pixel::{Pixel, Zero};
@@ -78,7 +78,7 @@ pub trait QoiDecode {
 }
 
 impl Data {
-    
+
     pub fn get_pixels(&self) -> Vec<u8> {
         self.img.to_rgb8().into_raw()
     }
