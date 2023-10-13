@@ -9,11 +9,9 @@ pub struct Pixel {
 }
 
 impl Pixel {
-
     pub fn to_bytes(&self) -> [u8; CHANNELS as usize] { 
         return [self.r, self.g, self.b];
     }
-
     pub fn hash(&self) -> usize {
         self.r as usize * 3 + self.g as usize * 5 + self.b as usize * 7
     }
