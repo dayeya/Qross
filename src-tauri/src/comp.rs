@@ -234,7 +234,6 @@ impl QoiEncode for Data {
 
 impl QoiDecode for Data {
 
-    // QOI encoding function.
     fn decode(&self, reader: &mut BufReader<File>, path: PathBuf) -> Result<QoiFile, QoiError> {
 
         let width: u32 = self.img.width();
@@ -248,14 +247,17 @@ impl QoiDecode for Data {
         let mut buf: Vec<u8> = Vec::new();
 
         reader.read_to_end(&mut buf)?;
+
+        // Seek to the start.
         reader.rewind()?;
 
-        let buffered_magic: [u8; 4] = read_u32(reader, &mut read_bytes)?;
-        let buffered_width: [u8; 4] = read_u32(reader, &mut read_bytes)?;
+        let buffered_magic: [u8; 4]  = read_u32(reader, &mut read_bytes)?;
+        let buffered_width: [u8; 4]  = read_u32(reader, &mut read_bytes)?;
         let buffered_height: [u8; 4] = read_u32(reader, &mut read_bytes)?;
-        let buffered_channels: u8 = read_u8(reader, &mut read_bytes)?[0];
-        let buffered_color_space: u8 = read_u8(reader, &mut read_bytes)?[0];
+        let buffered_channels: u8    =  read_u8(reader, &mut read_bytes)?[0];
+        let buffered_color_space: u8 =  read_u8(reader, &mut read_bytes)?[0];
 
+        // Check MAGIC header.
         if buffered_magic != QOI_MAGIC {
             let magic_error: String = format!("{:?}", buffered_magic);
             panic!("{}", QoiError::InvalidHeader(magic_error));
@@ -265,7 +267,7 @@ impl QoiDecode for Data {
 
             let current_byte: u8 = read_u8(reader, &mut read_bytes)?[0];
 
-            // check single encoded pixel.
+            // Check single encoded pixel.
             if current_byte == QOI_OP_RGB {
                 let r: u8 = read_u8(reader, &mut read_bytes)?[0];
                 let g: u8 = read_u8(reader, &mut read_bytes)?[0];
@@ -282,11 +284,11 @@ impl QoiDecode for Data {
                 continue;
             }
 
-            // check run.
+            // Check run.
             if (current_byte & QOI_2BIT_TAG_MASK) == QOI_OP_RUN { 
                 let mut run_value: u8 = (current_byte & QOI_RUN_LENGTH_MASK) + 1;
 
-                // check if QOI buffer starts with a run.
+                // Check if QOI file starts with a run.
                 if read_bytes == QOI_HEADER_SIZE + 1 as usize {
                     let index: usize = Pixel::zero().hash() % seen_pixels.len();
                     seen_pixels[index] = Pixel::zero(); 
@@ -317,7 +319,7 @@ impl QoiDecode for Data {
                 let diff_b: u8 = ((current_byte & QOI_BLUE_DIFF)  >> 0).wrapping_sub(2);
                 
 
-                // prev pixel whom diff was calculated.
+                // Prev pixel whom diff was calculated.
                 let pixel: Pixel = Pixel {
                     r: (diff_r.wrapping_add(prev.r)), 
                     g: (diff_g.wrapping_add(prev.g)), 
@@ -344,7 +346,7 @@ impl QoiDecode for Data {
                 let diff_r: u8 = dr_dg.wrapping_add(diff_g);
                 let diff_b: u8 = db_dg.wrapping_add(diff_g); 
 
-                // prev pixel whom luma was calculated.
+                // Prev pixel for whom luma was calculated.
                 let pixel: Pixel = Pixel {
                     r: (diff_r.wrapping_add(prev.r)), 
                     g: (diff_g.wrapping_add(prev.g)), 
@@ -369,7 +371,6 @@ impl QoiDecode for Data {
         }
 
         Ok(
-            // size will be set later uppoin create.
             QoiFile {
                 path,
                 size: 0,
