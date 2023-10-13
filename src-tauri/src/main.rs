@@ -5,22 +5,18 @@ pub mod consts;
 pub mod pixel;
 pub mod comp;
 pub mod qoi_errror;
+pub mod qoi_file;
 
 use std::env;
 use std::fs;
+use comp::Package;
 use tauri::State;
 use std::path::Path;
 use rusqlite::Error;
 use std::ffi::OsStr;
 
-use image::DynamicImage;
-
-// own crate
-use crate::comp:: Data;
-use crate::db::Table;
-use crate::db::DbFunctions;
-
-const IMG_FOLDER_PATH: &str = r"C:\coding\RUST\image_compressor\src\app_imgs\";
+use crate::consts::IMG_FOLDER_PATH;
+use crate::db::{Table, DbFunctions};
 
 fn create_img_folder() -> Result<(), std::io::Error>{
     fs::create_dir_all(IMG_FOLDER_PATH)?;
@@ -28,11 +24,9 @@ fn create_img_folder() -> Result<(), std::io::Error>{
 }
 
 fn file_name(file: &str) -> &OsStr {
-    let file_name: &OsStr = match Path::new(file).file_name().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid file path",)) {
-        Ok(name) => name,
-        Err(_) => panic!("Problem at reading file!")
-    };
-    file_name
+    Path::new(file)
+        .file_name()
+        .unwrap_or_else(|| panic!("Problem at reading file!"))
 }
 
 #[tauri::command]
@@ -60,20 +54,23 @@ fn save_file_inside_db(app_db: State<'_, Table>, file: &str) -> Option<String> {
 }
 
 #[tauri::command] 
-fn compress(app_db: State<'_, Table>) {
+fn compress(app_db: State<'_, Table>) -> Option<String> {
 
-    let file: Result<String, Error> = app_db.last_file();
+    let files: Result<Vec<String>, Error> = app_db.fetch_all_files();
 
-    let img: DynamicImage = image::open(Path::new(file.as_ref().unwrap())).unwrap();
-    let data: Data = Data { path: file.unwrap(), img: img };
+    if let Ok(files) = files { 
+        let mut pack: Package = Package::with_files(files);
 
-    // create buffer for current data.
-    let qoi_file: String = data.path.replace(&data.path[data.path.len() - 3..], "qoi");
-    data.compress(qoi_file);
-
+        // compress all uploaded files.
+        pack.compress_all();
+        Some("Success".to_string())
+    }
+    else {
+        Some("Failure".to_string())
+    }
 }
 
-fn main() {
+fn main() -> Result<(), Error> {
 
     env::set_var("RUST_BACKTRACE", "1");
     let app_db: Table;
@@ -106,4 +103,6 @@ fn main() {
     .invoke_handler(tauri::generate_handler![save_file_inside_db, compress])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
+
+    Ok(())
 }

@@ -15,8 +15,7 @@ pub struct Table {
 pub trait DbFunctions {
     fn create_table(&self) -> Result<(), Error>;
     fn save_file(&self, file: &str) -> Result<(), Error>;
-    fn remove_file(&self) -> Result<(), Error>;
-    fn last_file(&self) -> Result<String, Error>;
+    fn fetch_all_files(&self) -> Result<Vec<String>, Error>;
 }
 
 // Impl block for all functions, REMEMBER when CON is out of scope the value is dropped (no need for .close)
@@ -39,23 +38,28 @@ impl DbFunctions for Table {
         Ok(())
     }
 
-    fn remove_file(&self) -> Result<(), Error> { 
-        Ok(()) 
-    }
-
-    fn last_file(&self) -> Result<String, Error> {
+    fn fetch_all_files(&self) -> Result<Vec<String>, Error> {
         let con = Connection::open(DB_FILE_NAME)?;
 
         let query = format!("SELECT file_path FROM {}", &self.table_name);
         
         let mut statement = con.prepare(&query, )?;
-        let mut files: Vec<Result<String, Error>> = statement
+        let file_results: Vec<Result<String, Error>> = statement
         .query_map((), |r| {
             let get: Result<String, Error> = r.get(0);
             get
         })?.collect_vec();
+
+        let files = file_results
+        .iter()
+        .map(|res| {
+            match res { 
+                Ok(s) => s.to_owned(),
+                Err(e) => format!("ERROR {}", e),
+            }
+        })
+        .collect_vec();
         
-        let last_file: Option<Result<String, Error>> = files.pop();
-        last_file.unwrap()
+        Ok(files)
     }
 }  

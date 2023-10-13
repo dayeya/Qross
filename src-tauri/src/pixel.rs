@@ -15,7 +15,7 @@ impl Pixel {
     }
 
     pub fn hash(&self) -> usize {
-        self.r as usize * 3 + self.g as usize  * 5 + self.b as usize * 7
+        self.r as usize * 3 + self.g as usize * 5 + self.b as usize * 7
     }
 }
 
@@ -29,7 +29,7 @@ impl Zero for Pixel {
             r: 0,
             g: 0,
             b: 0,
-            a: 0,
+            a: 255,
         }
     }
 }
