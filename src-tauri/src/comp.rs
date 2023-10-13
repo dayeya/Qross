@@ -143,7 +143,7 @@ impl QoiEncode for Data {
             }
         };
 
-        // write the header into the buffer.
+        // Write the header into the buffer.
         write(&QOI_MAGIC)?;
         write(&width.to_be_bytes())?;
         write(&height.to_be_bytes())?;
@@ -154,7 +154,7 @@ impl QoiEncode for Data {
 
             let pixel: Pixel = offset_pixel(offset);
             
-            // check run.
+            // Check run.
             if pixel == prev { 
                 run += 1;
                 if let true = (run == 62 || offset == last_offset) { 
@@ -163,7 +163,7 @@ impl QoiEncode for Data {
                 }
             }
 
-            // run existing and the pixel broke the equality.
+            // Run existing and the pixel broke the equality.
             else {
 
                 if run > 0 {
@@ -171,17 +171,17 @@ impl QoiEncode for Data {
                     run = 0;
                 }
 
-                // check for index chunk.
+                // Check for index chunk.
                 index = pixel.hash() % seen_pixels.len();
                 if pixel == seen_pixels[index] {
                     write(&[QOI_OP_INDEX | index as u8])?;
                 }
                 else {
 
-                    // update the array.
+                    // Update the array.
                     seen_pixels[index] = pixel.clone(); 
   
-                    // check for diff chunk.
+                    //Check for different chunks.
                     let diff_r = pixel.r as i16 - prev.r as i16; 
                     let diff_g = pixel.g as i16 - prev.g as i16;
                     let diff_b = pixel.b as i16 - prev.b as i16; 
@@ -192,29 +192,26 @@ impl QoiEncode for Data {
                     if diff_r > -3 && diff_r < 2 
                     && diff_g > -3 && diff_g < 2
                     && diff_b > -3 && diff_b < 2 {
-
                         let qoi_diff_chunk: u8 = QOI_OP_DIFF as u8
                                 | ((diff_r + 2) << 4) as u8
                                 | ((diff_g + 2) << 2) as u8
-                                | ((diff_b + 2) << 0) as u8; // clearer vision of the DIFF chunk.
-
-
+                                | ((diff_b + 2) << 0) as u8; // Clearer vision of the DIFF chunk.
+                        
                         write(&[qoi_diff_chunk])?;
                     }  
                     else {
-                        
                         if  diff_g > -33 && diff_g < 32 
                             && dr_dg > -9 && dr_dg < 8
                             && db_dg > -9 && db_dg < 8 {
                             let qoi_luma_h: u8 = QOI_OP_LUMA | (diff_g + 32) as u8;
                             let qoi_luma_l: u8 = ((dr_dg + 8) << 4) as u8
-                                               | ((db_dg + 8) << 0) as u8 ; // clearer vision of the LUMA chunk.
-
+                                               | ((db_dg + 8) << 0) as u8 ; // Clearer vision of the LUMA chunk.
+                            
                             write(&[qoi_luma_h])?;
                             write(&[qoi_luma_l])?;
                         }
                         else {
-                            // write 4 bytes of QOI_OP_RGB 
+                            // Write 4 bytes of QOI_OP_RGB 
                             write(&[QOI_OP_RGB])?;
                             write(&[pixel.r])?;
                             write(&[pixel.g])?;
@@ -228,7 +225,7 @@ impl QoiEncode for Data {
         }
         write(&QOI_END_MARK)?;
 
-        // return the number of encoded bytes.
+        // Return the number of encoded bytes.
         buffer.flush()?;
         Ok(written_bytes)
 
