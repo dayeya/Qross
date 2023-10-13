@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 use image::{ImageBuffer, ImageFormat, Rgb};
 
-// own modules.
 use crate::pixel::Pixel;
 use crate::qoi_errror::QoiError;
 
@@ -17,19 +16,17 @@ pub struct QoiFile {
 }
 
 impl QoiFile {
-
     pub fn set_size(&mut self) { 
         self.size = (self.width * self.height * self.channels as u32) as usize;
     }
-
+    
     pub fn parse_pixels_to_vec(&self, px_buffer: &mut Vec<u8>) {
         self.pixels.iter().for_each(
             |px| px_buffer.extend(px.to_bytes())
         )
     }
-
+    
     pub fn create(&mut self, path: PathBuf) {
-        
         let mut px_buffer: Vec<u8> = Vec::with_capacity(self.size);
         self.parse_pixels_to_vec(&mut px_buffer);
 
