@@ -146,7 +146,7 @@ impl QoiEncode for Data {
             }
         };
 
-        // write the header into the buffer.
+        // Write the header into the buffer.
         write(&QOI_MAGIC)?;
         write(&width.to_be_bytes())?;
         write(&height.to_be_bytes())?;
@@ -157,7 +157,7 @@ impl QoiEncode for Data {
 
             let pixel: Pixel = offset_pixel(offset);
             
-            // check run.
+            // Check run.
             if pixel == prev { 
                 run += 1;
                 if let true = (run == 62 || offset == last_offset) { 
@@ -166,7 +166,7 @@ impl QoiEncode for Data {
                 }
             }
 
-            // run existing and the pixel broke the equality.
+            // Run existing and the pixel broke the equality.
             else {
 
                 if run > 0 {
@@ -174,17 +174,17 @@ impl QoiEncode for Data {
                     run = 0;
                 }
 
-                // check for index chunk.
+                // Check for index chunk.
                 index = pixel.hash() % seen_pixels.len();
                 if pixel == seen_pixels[index] {
                     write(&[QOI_OP_INDEX | index as u8])?;
                 }
                 else {
 
-                    // update the array.
+                    // Update the array.
                     seen_pixels[index] = pixel.clone(); 
   
-                    // check for diff chunk.
+                    //Check for different chunks.
                     let diff_r = pixel.r as i16 - prev.r as i16; 
                     let diff_g = pixel.g as i16 - prev.g as i16;
                     let diff_b = pixel.b as i16 - prev.b as i16; 
@@ -195,29 +195,26 @@ impl QoiEncode for Data {
                     if diff_r > -3 && diff_r < 2 
                     && diff_g > -3 && diff_g < 2
                     && diff_b > -3 && diff_b < 2 {
-
                         let qoi_diff_chunk: u8 = QOI_OP_DIFF as u8
                                 | ((diff_r + 2) << 4) as u8
                                 | ((diff_g + 2) << 2) as u8
-                                | ((diff_b + 2) << 0) as u8; // clearer vision of the DIFF chunk.
-
-
+                                | ((diff_b + 2) << 0) as u8; // Clearer vision of the DIFF chunk.
+                        
                         write(&[qoi_diff_chunk])?;
                     }  
                     else {
-                        
                         if  diff_g > -33 && diff_g < 32 
                             && dr_dg > -9 && dr_dg < 8
                             && db_dg > -9 && db_dg < 8 {
                             let qoi_luma_h: u8 = QOI_OP_LUMA | (diff_g + 32) as u8;
                             let qoi_luma_l: u8 = ((dr_dg + 8) << 4) as u8
-                                               | ((db_dg + 8) << 0) as u8 ; // clearer vision of the LUMA chunk.
-
+                                               | ((db_dg + 8) << 0) as u8 ; // Clearer vision of the LUMA chunk.
+                            
                             write(&[qoi_luma_h])?;
                             write(&[qoi_luma_l])?;
                         }
                         else {
-                            // write 4 bytes of QOI_OP_RGB 
+                            // Write 4 bytes of QOI_OP_RGB 
                             write(&[QOI_OP_RGB])?;
                             write(&[pixel.r])?;
                             write(&[pixel.g])?;
@@ -231,7 +228,7 @@ impl QoiEncode for Data {
         }
         write(&QOI_END_MARK)?;
 
-        // return the number of encoded bytes.
+        // Return the number of encoded bytes.
         buffer.flush()?;
         Ok(written_bytes)
 
@@ -240,7 +237,6 @@ impl QoiEncode for Data {
 
 impl QoiDecode for Data {
 
-    // QOI encoding function.
     fn decode(&self, reader: &mut BufReader<File>, path: PathBuf) -> Result<QoiFile, QoiError> {
 
         let width: u32 = self.img.width();
@@ -254,14 +250,17 @@ impl QoiDecode for Data {
         let mut buf: Vec<u8> = Vec::new();
 
         reader.read_to_end(&mut buf)?;
+
+        // Seek to the start.
         reader.rewind()?;
 
-        let buffered_magic: [u8; 4] = read_u32(reader, &mut read_bytes)?;
-        let buffered_width: [u8; 4] = read_u32(reader, &mut read_bytes)?;
+        let buffered_magic: [u8; 4]  = read_u32(reader, &mut read_bytes)?;
+        let buffered_width: [u8; 4]  = read_u32(reader, &mut read_bytes)?;
         let buffered_height: [u8; 4] = read_u32(reader, &mut read_bytes)?;
-        let buffered_channels: u8 = read_u8(reader, &mut read_bytes)?[0];
-        let buffered_color_space: u8 = read_u8(reader, &mut read_bytes)?[0];
+        let buffered_channels: u8    =  read_u8(reader, &mut read_bytes)?[0];
+        let buffered_color_space: u8 =  read_u8(reader, &mut read_bytes)?[0];
 
+        // Check MAGIC header.
         if buffered_magic != QOI_MAGIC {
             let magic_error: String = format!("{:?}", buffered_magic);
             panic!("{}", QoiError::InvalidHeader(magic_error));
@@ -271,7 +270,7 @@ impl QoiDecode for Data {
 
             let current_byte: u8 = read_u8(reader, &mut read_bytes)?[0];
 
-            // check single encoded pixel.
+            // Check single encoded pixel.
             if current_byte == QOI_OP_RGB {
                 let r: u8 = read_u8(reader, &mut read_bytes)?[0];
                 let g: u8 = read_u8(reader, &mut read_bytes)?[0];
@@ -288,11 +287,11 @@ impl QoiDecode for Data {
                 continue;
             }
 
-            // check run.
+            // Check run.
             if (current_byte & QOI_2BIT_TAG_MASK) == QOI_OP_RUN { 
                 let mut run_value: u8 = (current_byte & QOI_RUN_LENGTH_MASK) + 1;
 
-                // check if QOI buffer starts with a run.
+                // Check if QOI file starts with a run.
                 if read_bytes == QOI_HEADER_SIZE + 1 as usize {
                     let index: usize = Pixel::zero().hash() % seen_pixels.len();
                     seen_pixels[index] = Pixel::zero(); 
@@ -323,7 +322,7 @@ impl QoiDecode for Data {
                 let diff_b: u8 = ((current_byte & QOI_BLUE_DIFF)  >> 0).wrapping_sub(2);
                 
 
-                // prev pixel whom diff was calculated.
+                // Prev pixel whom diff was calculated.
                 let pixel: Pixel = Pixel {
                     r: (diff_r.wrapping_add(prev.r)), 
                     g: (diff_g.wrapping_add(prev.g)), 
@@ -350,7 +349,7 @@ impl QoiDecode for Data {
                 let diff_r: u8 = dr_dg.wrapping_add(diff_g);
                 let diff_b: u8 = db_dg.wrapping_add(diff_g); 
 
-                // prev pixel whom luma was calculated.
+                // Prev pixel for whom luma was calculated.
                 let pixel: Pixel = Pixel {
                     r: (diff_r.wrapping_add(prev.r)), 
                     g: (diff_g.wrapping_add(prev.g)), 
@@ -375,7 +374,6 @@ impl QoiDecode for Data {
         }
 
         Ok(
-            // size will be set later uppoin create.
             QoiFile {
                 path,
                 size: 0,
