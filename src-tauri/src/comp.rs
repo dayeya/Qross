@@ -2,24 +2,21 @@
 image compression using QOI, official website: https://qoiformat.org/, you can find the specification there. 
 */
 
-
 use crate::consts::*;
 use crate::qoi_file::QoiFile;
 use crate::pixel::{Pixel, Zero};
 use crate::qoi_errror::QoiError;
 
-
-// for parallelism
 extern crate rayon;
 use itertools::Itertools;
 use rayon::prelude::*;
 
-// io important crates.
 use image::DynamicImage;
 use std::fs::{File, self};
 use std::path::{Path, PathBuf};
 use std::io::{BufWriter, Write, BufReader, Read, Seek, Error};
 
+// Read N bytes from 'reader'.
 fn read_from_buffer<const N: usize>(reader: &mut BufReader<File>, read_bytes: &mut usize) -> Result<[u8; N], QoiError> { 
     let mut bytes: [u8; N] = [u8::MIN; N];
     reader.read_exact(&mut bytes)?;
@@ -28,10 +25,12 @@ fn read_from_buffer<const N: usize>(reader: &mut BufReader<File>, read_bytes: &m
     Ok(bytes)
 }
 
+// Modified read_from_buffer to read one bytes.
 fn read_u8(reader: &mut BufReader<File>, read_bytes: &mut usize) -> Result<[u8; 1], QoiError> {
     read_from_buffer::<1>(reader, read_bytes)
 }
 
+// Modified read_from_buffer to read 4 bytes.
 fn read_u32(reader: &mut BufReader<File>, read_bytes: &mut usize) -> Result<[u8; 4], QoiError> {
     read_from_buffer::<4>(reader, read_bytes)
 }
@@ -46,7 +45,10 @@ pub struct Package {
 }
 
 impl Package {
- 
+    
+    /*
+    Returns a Package built from 'files'. 
+     */
     pub fn with_files(files: Vec<String>) -> Self {
         Self { collection: 
             files
@@ -61,6 +63,7 @@ impl Package {
         }
     }
 
+    // Compresses all files in Package.
     pub fn compress_all(&mut self) {
         self.collection.par_iter_mut().for_each(|d| { let _ = d.compress(); });
     }
